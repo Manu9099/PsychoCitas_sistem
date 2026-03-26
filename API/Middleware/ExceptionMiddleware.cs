@@ -9,24 +9,54 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
 {
     public async Task InvokeAsync(HttpContext context)
     {
-        try { await next(context); }
-        catch (Exception ex) { await HandleExceptionAsync(context, ex, logger); }
+        try
+        {
+            await next(context);
+        }
+        catch (Exception ex)
+        {
+            await HandleExceptionAsync(context, ex, logger);
+        }
     }
 
     private static async Task HandleExceptionAsync(HttpContext context, Exception ex, ILogger logger)
     {
-        var (statusCode, title, errors) = ex switch
+        (HttpStatusCode statusCode, string title, IDictionary<string, string[]>? errors) = ex switch
         {
-            ValidationException vex => (HttpStatusCode.BadRequest, "Error de validación",
-                vex.Errors.ToDictionary(e => e.PropertyName, e => e.Errors.ToArray())),
-            NotFoundException => (HttpStatusCode.NotFound, ex.Message,
-                (IDictionary<string, string[]>?)null),
-            DomainException => (HttpStatusCode.UnprocessableEntity, ex.Message,
-                (IDictionary<string, string[]>?)null),
-            ConflictoAgendaException => (HttpStatusCode.Conflict, ex.Message,
-                (IDictionary<string, string[]>?)null),
-            _ => (HttpStatusCode.InternalServerError, "Error interno del servidor",
-                (IDictionary<string, string[]>?)null)
+            ValidationException vex => (
+                HttpStatusCode.BadRequest,
+                "Error de validación",
+                (IDictionary<string, string[]>)vex.Errors
+                    .GroupBy(e => e.PropertyName)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Select(e => e.ErrorMessage).ToArray()
+                    )
+            ),
+
+            NotFoundException => (
+                HttpStatusCode.NotFound,
+                ex.Message,
+                null
+            ),
+
+            DomainException => (
+                HttpStatusCode.UnprocessableEntity,
+                ex.Message,
+                null
+            ),
+
+            ConflictoAgendaException => (
+                HttpStatusCode.Conflict,
+                ex.Message,
+                null
+            ),
+
+            _ => (
+                HttpStatusCode.InternalServerError,
+                "Error interno del servidor",
+                null
+            )
         };
 
         if (statusCode == HttpStatusCode.InternalServerError)
@@ -35,8 +65,18 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)statusCode;
 
-        var response = new { title, status = (int)statusCode, errors };
-        await context.Response.WriteAsync(JsonSerializer.Serialize(response,
-            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
+        var response = new
+        {
+            title,
+            status = (int)statusCode,
+            errors
+        };
+
+        await context.Response.WriteAsync(
+            JsonSerializer.Serialize(
+                response,
+                new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+            )
+        );
     }
 }

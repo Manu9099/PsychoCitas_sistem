@@ -1,0 +1,22 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.userprefs
+
+## Secrets
+appsettings.Development.json
+**/secrets.json
+
+## EF Migrations (opcional — algunos prefieren commitearlas)
+# **/Migrations/
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Rider / VS Code
+.idea/
+.vscode/

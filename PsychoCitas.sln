@@ -1,0 +1,73 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34316.72
+MinimumVisualStudioVersion = 10.0.40219.1
+
+# ── Projects ──────────────────────────────────────────────────────────
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PsychoCitas.Domain", "Domain\PsychoCitas.Domain.csproj", "{8B662467-8634-4958-9558-229ACD11BEA6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PsychoCitas.Application", "Application\PsychoCitas.Application.csproj", "{1ADBC641-8D77-4B4E-BD75-268633DF68C2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PsychoCitas.Infrastructure", "Infrastructure\PsychoCitas.Infrastructure.csproj", "{04140796-FAC1-403D-B733-9851D355518C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PsychoCitas.API", "API\PsychoCitas.API.csproj", "{3172B7B2-2905-497B-85BC-88931E600706}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PsychoCitas.Domain.Tests", "Tests\Domain.Tests\PsychoCitas.Domain.Tests.csproj", "{2FF19709-86E7-470E-AE9B-B50DAAA06F38}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PsychoCitas.Application.Tests", "Tests\Application.Tests\PsychoCitas.Application.Tests.csproj", "{407DA78F-6787-429A-AEF6-85D230E5361F}"
+EndProject
+
+# ── Solution Folders ───────────────────────────────────────────────────
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{4B199EAB-50A6-4A8B-93CE-46CAD0002564}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{E0810B77-8C27-4400-B116-A0BAA0334B02}"
+EndProject
+
+Global
+  GlobalSection(SolutionConfigurationPlatforms) = preSolution
+    Debug|Any CPU = Debug|Any CPU
+    Release|Any CPU = Release|Any CPU
+  EndGlobalSection
+
+  GlobalSection(ProjectConfigurationPlatforms) = postSolution
+    {8B662467-8634-4958-9558-229ACD11BEA6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {8B662467-8634-4958-9558-229ACD11BEA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {8B662467-8634-4958-9558-229ACD11BEA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {8B662467-8634-4958-9558-229ACD11BEA6}.Release|Any CPU.Build.0 = Release|Any CPU
+
+    {1ADBC641-8D77-4B4E-BD75-268633DF68C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {1ADBC641-8D77-4B4E-BD75-268633DF68C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {1ADBC641-8D77-4B4E-BD75-268633DF68C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {1ADBC641-8D77-4B4E-BD75-268633DF68C2}.Release|Any CPU.Build.0 = Release|Any CPU
+
+    {04140796-FAC1-403D-B733-9851D355518C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {04140796-FAC1-403D-B733-9851D355518C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {04140796-FAC1-403D-B733-9851D355518C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {04140796-FAC1-403D-B733-9851D355518C}.Release|Any CPU.Build.0 = Release|Any CPU
+
+    {3172B7B2-2905-497B-85BC-88931E600706}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {3172B7B2-2905-497B-85BC-88931E600706}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {3172B7B2-2905-497B-85BC-88931E600706}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {3172B7B2-2905-497B-85BC-88931E600706}.Release|Any CPU.Build.0 = Release|Any CPU
+
+    {2FF19709-86E7-470E-AE9B-B50DAAA06F38}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {2FF19709-86E7-470E-AE9B-B50DAAA06F38}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {2FF19709-86E7-470E-AE9B-B50DAAA06F38}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {2FF19709-86E7-470E-AE9B-B50DAAA06F38}.Release|Any CPU.Build.0 = Release|Any CPU
+
+    {407DA78F-6787-429A-AEF6-85D230E5361F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {407DA78F-6787-429A-AEF6-85D230E5361F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {407DA78F-6787-429A-AEF6-85D230E5361F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {407DA78F-6787-429A-AEF6-85D230E5361F}.Release|Any CPU.Build.0 = Release|Any CPU
+  EndGlobalSection
+
+  GlobalSection(NestedProjects) = preSolution
+    {8B662467-8634-4958-9558-229ACD11BEA6} = {4B199EAB-50A6-4A8B-93CE-46CAD0002564}
+    {1ADBC641-8D77-4B4E-BD75-268633DF68C2} = {4B199EAB-50A6-4A8B-93CE-46CAD0002564}
+    {04140796-FAC1-403D-B733-9851D355518C} = {4B199EAB-50A6-4A8B-93CE-46CAD0002564}
+    {3172B7B2-2905-497B-85BC-88931E600706} = {4B199EAB-50A6-4A8B-93CE-46CAD0002564}
+    {2FF19709-86E7-470E-AE9B-B50DAAA06F38} = {E0810B77-8C27-4400-B116-A0BAA0334B02}
+    {407DA78F-6787-429A-AEF6-85D230E5361F} = {E0810B77-8C27-4400-B116-A0BAA0334B02}
+  EndGlobalSection
+EndGlobal

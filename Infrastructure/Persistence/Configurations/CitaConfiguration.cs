@@ -30,11 +30,13 @@ public class CitaConfiguration : IEntityTypeConfiguration<Cita>
         builder.Property(c => c.CreadoEn).HasColumnName("creado_en");
         builder.Property(c => c.ActualizadoEn).HasColumnName("actualizado_en");
 
-        builder.Property(c => c.TipoSesion)
-            .HasColumnName("tipo_sesion");
+       builder.Property(c => c.TipoSesion)
+        .HasColumnName("tipo_sesion")
+        .HasColumnType("tipo_sesion");
 
         builder.Property(c => c.Modalidad)
-            .HasColumnName("modalidad");
+            .HasColumnName("modalidad")
+            .HasColumnType("modalidad");
 
         builder.Property(c => c.Estado)
             .HasColumnName("estado")

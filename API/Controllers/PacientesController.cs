@@ -28,4 +28,6 @@ public class PacientesController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(command, ct);
         return CreatedAtAction(nameof(GetDetalle), new { id = result.Id }, result);
     }
+
+    
 }

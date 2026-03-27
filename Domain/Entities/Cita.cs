@@ -21,6 +21,7 @@ public class Cita : BaseEntity
     public DateTime? CanceladoEn { get; private set; }
     public Guid? RecurrenciaId { get; private set; }
     public Guid? CreadoPor { get; private set; }
+   
 
     // Navegación
     public Paciente? Paciente { get; private set; }

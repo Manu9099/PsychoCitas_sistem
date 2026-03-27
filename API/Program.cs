@@ -4,11 +4,16 @@ using Microsoft.OpenApi.Models;
 using PsychoCitas.API.Extensions;
 using PsychoCitas.API.Middleware;
 using System.Text;
+using PsychoCitas.API.Services;
+using PsychoCitas.Application.Common.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUser, CurrentUserService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -109,6 +114,7 @@ builder.Services
     });
 
 builder.Services.AddAuthorization();
+
 
 builder.Services.AddCors(options =>
 {

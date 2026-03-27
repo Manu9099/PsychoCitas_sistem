@@ -22,8 +22,9 @@ public class AuthController(IConfiguration configuration) : ControllerBase
 
         var claims = new[]
         {
-            new Claim(ClaimTypes.NameIdentifier, "1"),
+            new Claim(ClaimTypes.NameIdentifier, "a0000000-0000-0000-0000-000000000001"),
             new Claim(ClaimTypes.Name, "admin"),
+            new Claim(ClaimTypes.Email, "admin@psychocitas.com"),
             new Claim(ClaimTypes.Role, "Admin")
         };
 

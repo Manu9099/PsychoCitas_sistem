@@ -1,5 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using PsychoCitas.Domain.Entities;
+using Npgsql;
+using PsychoCitas.Domain.Enums;
+using PsychoCitas.Infrastructure.Persistence;
+
 
 namespace PsychoCitas.Infrastructure.Persistence;
 
@@ -14,8 +18,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasPostgresEnum<EstadoCita>("estado_cita");
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
         base.OnModelCreating(modelBuilder);
+         
+    
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken ct = default)

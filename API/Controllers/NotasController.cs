@@ -8,7 +8,7 @@ namespace PsychoCitas.API.Controllers;
 
 [ApiController]
 [Route("api/citas/{citaId:guid}/nota")]
-[Authorize]
+[Authorize(Policy = "Staff")]
 public class NotasController(IMediator mediator) : ControllerBase
 {
     [HttpGet]

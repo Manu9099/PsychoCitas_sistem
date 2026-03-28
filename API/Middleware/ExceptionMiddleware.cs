@@ -54,7 +54,12 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
                 ex.Message,
                 null
             ),
-
+            ConflictException => ( 
+                HttpStatusCode.Conflict, 
+                ex.Message, 
+                null
+                 ),
+             
             _ => (
                 HttpStatusCode.InternalServerError,
                 "Error interno del servidor",

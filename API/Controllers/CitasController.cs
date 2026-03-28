@@ -9,7 +9,7 @@ namespace PsychoCitas.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Policy = "Staff")]
 public class CitasController(IMediator mediator) : ControllerBase
 {
     [HttpGet("agenda/hoy")]

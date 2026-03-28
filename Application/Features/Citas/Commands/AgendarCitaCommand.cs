@@ -25,6 +25,7 @@ public record AgendarCitaCommand(
 // ── Validator ──
 public class AgendarCitaValidator : AbstractValidator<AgendarCitaCommand>
 {
+    
     public AgendarCitaValidator()
     {
         RuleFor(x => x.PacienteId).NotEmpty().WithMessage("El paciente es requerido.");
@@ -41,17 +42,23 @@ public class AgendarCitaValidator : AbstractValidator<AgendarCitaCommand>
 
 // ── Handler ──
 public class AgendarCitaHandler(
+    
     IUnitOfWork uow,
     ICurrentUser currentUser,
     INotificationService notificationService) : IRequestHandler<AgendarCitaCommand, CitaResumenDto>
 {
     public async Task<CitaResumenDto> Handle(AgendarCitaCommand cmd, CancellationToken ct)
+    
     {
         // Verificar solapamiento
         var hayConflicto = await uow.Citas.ExisteSolapamientoAsync(cmd.PsicologoId, cmd.FechaInicio, cmd.FechaFin, ct: ct);
         if (hayConflicto)
             throw new ConflictoAgendaException(cmd.FechaInicio, cmd.FechaFin);
-
+            
+       //verficar que le psicologo que se le asigna la cita es el mismo que esta logueado
+          if (currentUser.EsPsicologo && cmd.PsicologoId != currentUser.UserId)
+        throw new UnauthorizedAccessException("No puedes agendar citas para otro psicólogo.");
+ 
         // Verificar que el paciente existe
         var paciente = await uow.Pacientes.GetByIdAsync(cmd.PacienteId, ct)
             ?? throw new NotFoundException(nameof(Paciente), cmd.PacienteId);

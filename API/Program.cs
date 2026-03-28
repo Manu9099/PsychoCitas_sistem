@@ -117,7 +117,14 @@ builder.Services
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Staff", policy =>
+        policy.RequireRole("Admin", "Psicologo"));
+
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireRole("Admin"));
+});
 
 
 builder.Services.AddCors(options =>

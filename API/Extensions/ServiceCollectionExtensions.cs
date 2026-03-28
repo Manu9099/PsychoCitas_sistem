@@ -9,6 +9,11 @@ using PsychoCitas.Application.Common.Interfaces;
 using FluentValidation;
 using MediatR;
 using PsychoCitas.Application.Common.Behaviors;
+using PsychoCitas.Infrastructure.Options;
+using PsychoCitas.Infrastructure.Services.Notifications;
+using Resend;
+
+
 
 
 namespace PsychoCitas.API.Extensions;
@@ -41,10 +46,24 @@ public static class ServiceCollectionExtensions
 
         services.AddDbContext<AppDbContext>(opt =>
             opt.UseNpgsql(dataSource, b => b.MigrationsAssembly("PsychoCitas.Infrastructure")));
+            services.Configure<ResendOptions>(config.GetSection(ResendOptions.SectionName));
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
         services.AddScoped<IPasswordHasher, PasswordHasherService>();
+        services.Configure<SendGridOptions>(config.GetSection(SendGridOptions.SectionName));
+        services.Configure<TwilioOptions>(config.GetSection(TwilioOptions.SectionName));
+       services.AddOptions();
+        services.AddHttpClient<ResendClient>();
+        services.Configure<ResendClientOptions>(o =>
+        {
+            o.ApiToken = config["Resend:ApiKey"]!;
+        });
+        services.AddTransient<IResend, ResendClient>();
+        services.AddScoped<SendGridEmailSender>();
+        services.AddScoped<TwilioSmsSender>();
+        services.AddScoped<TwilioWhatsAppSender>();
+        services.AddScoped<INotificationService, NotificationService>();
 
         return services;
     }

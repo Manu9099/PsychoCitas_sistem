@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore.Storage;
+using PsychoCitas.Domain.Entities;
 using PsychoCitas.Domain.Interfaces;
 using PsychoCitas.Infrastructure.Persistence.Repositories;
 
@@ -12,12 +13,13 @@ public class UnitOfWork(AppDbContext context) : IUnitOfWork
     public IPacienteRepository Pacientes { get; } = new PacienteRepository(context);
     public INotaSesionRepository Notas { get; } = new NotaSesionRepository(context);
     public IUsuarioRepository Usuarios { get; } = new UsuarioRepository(context);
+    public INotificacionRepository Notificaciones { get; } = new NotificacionRepository(context);
 
     public async Task SaveChangesAsync(CancellationToken ct = default)
     {
         var entities = context.ChangeTracker.Entries()
-            .Where(e => e.Entity is Domain.Entities.BaseEntity be && be.DomainEvents.Any())
-            .Select(e => (Domain.Entities.BaseEntity)e.Entity)
+            .Where(e => e.Entity is BaseEntity be && be.DomainEvents.Any())
+            .Select(e => (BaseEntity)e.Entity)
             .ToList();
 
         var events = entities.SelectMany(e => e.DomainEvents).ToList();
@@ -26,8 +28,8 @@ public class UnitOfWork(AppDbContext context) : IUnitOfWork
         await context.SaveChangesAsync(ct);
     }
 
-    public async Task BeginTransactionAsync(CancellationToken ct = default) =>
-        _transaction = await context.Database.BeginTransactionAsync(ct);
+    public async Task BeginTransactionAsync(CancellationToken ct = default)
+        => _transaction = await context.Database.BeginTransactionAsync(ct);
 
     public async Task CommitAsync(CancellationToken ct = default)
     {

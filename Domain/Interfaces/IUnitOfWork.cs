@@ -1,3 +1,5 @@
+using PsychoCitas.Domain.Interfaces;
+
 namespace PsychoCitas.Domain.Interfaces;
 
 public interface IUnitOfWork : IDisposable
@@ -6,6 +8,7 @@ public interface IUnitOfWork : IDisposable
     IPacienteRepository Pacientes { get; }
     INotaSesionRepository Notas { get; }
     IUsuarioRepository Usuarios { get; }
+    INotificacionRepository Notificaciones { get; }
 
     Task SaveChangesAsync(CancellationToken ct = default);
     Task BeginTransactionAsync(CancellationToken ct = default);

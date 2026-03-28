@@ -12,6 +12,7 @@ using PsychoCitas.Infrastructure.Options;
 using PsychoCitas.Infrastructure.Services.Notifications;
 using Resend;
 
+
 namespace PsychoCitas.API.Extensions;
 
 public static class ServiceCollectionExtensions
@@ -64,6 +65,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<TwilioSmsSender>();
         services.AddScoped<TwilioWhatsAppSender>();
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddHostedService<ReminderWorker>();
 
         return services;
     }

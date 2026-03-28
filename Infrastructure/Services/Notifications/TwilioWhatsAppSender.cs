@@ -1,32 +1,47 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using PsychoCitas.Infrastructure.Options;
 using Twilio;
 using Twilio.Rest.Api.V2010.Account;
 using Twilio.Types;
 
+namespace PsychoCitas.Infrastructure.Services.Notifications;
+
 public class TwilioWhatsAppSender
 {
-    private readonly string _accountSid;
-    private readonly string _authToken;
-    private readonly string _from;
+    private readonly TwilioOptions _options;
+    private readonly ILogger<TwilioWhatsAppSender> _logger;
 
-    public TwilioWhatsAppSender(string accountSid, string authToken, string from)
+    public TwilioWhatsAppSender(
+        IOptions<TwilioOptions> options,
+        ILogger<TwilioWhatsAppSender> logger)
     {
-        _accountSid = accountSid;
-        _authToken = authToken;
-        _from = from;
+        _options = options.Value;
+        _logger = logger;
     }
 
-    public async Task SendTemplateAsync(string toPhone)
+    public async Task SendAsync(string phone, string messageBody)
     {
-        TwilioClient.Init(_accountSid, _authToken);
+        if (string.IsNullOrWhiteSpace(_options.AccountSid) || string.IsNullOrWhiteSpace(_options.AuthToken))
+            throw new InvalidOperationException("Twilio no está configurado correctamente.");
 
-        var messageOptions = new CreateMessageOptions(
-            new PhoneNumber($"whatsapp:{toPhone}"));
+        if (string.IsNullOrWhiteSpace(_options.WhatsAppFrom))
+            throw new InvalidOperationException("Twilio:WhatsAppFrom no está configurado.");
 
-        messageOptions.From = new PhoneNumber(_from);
-        messageOptions.ContentSid = "HX229f5a04fd0510ce1b071852155d3e75";
-        messageOptions.ContentVariables = "{\"1\":\"409173\"}";
+        TwilioClient.Init(_options.AccountSid, _options.AuthToken);
 
-        var message = await MessageResource.CreateAsync(messageOptions);
-        Console.WriteLine(message.Sid);
+        var to = PhoneNumberNormalizer.ToWhatsAppAddress(phone, _options.DefaultCountryCode);
+
+        var message = await MessageResource.CreateAsync(
+            to: new PhoneNumber(to),
+            from: new PhoneNumber(_options.WhatsAppFrom),
+            body: messageBody
+        );
+
+        if (message.ErrorCode is not null)
+        {
+            _logger.LogError("Twilio WhatsApp error {ErrorCode}: {ErrorMessage}", message.ErrorCode, message.ErrorMessage);
+            throw new InvalidOperationException($"No se pudo enviar el WhatsApp: {message.ErrorMessage}");
+        }
     }
 }

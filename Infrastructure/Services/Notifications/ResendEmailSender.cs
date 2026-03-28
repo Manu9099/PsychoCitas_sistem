@@ -48,6 +48,6 @@ public class ResendEmailSender
             throw new InvalidOperationException($"No se pudo enviar el correo: {error}");
         }
 
-        _logger.LogInformation("Correo enviado con Resend. EmailId={EmailId}", response.Content);
+        _logger.LogInformation("Correo enviado con Resend. Id={Id}", response.Content);
     }
 }

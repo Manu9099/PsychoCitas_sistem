@@ -5,13 +5,13 @@ namespace PsychoCitas.Infrastructure.Services.Notifications;
 
 public class NotificationService : INotificationService
 {
-    private readonly SendGridEmailSender _emailSender;
+    private readonly ResendEmailSender _emailSender;
     private readonly TwilioSmsSender _smsSender;
     private readonly TwilioWhatsAppSender _whatsAppSender;
     private readonly ILogger<NotificationService> _logger;
 
     public NotificationService(
-        SendGridEmailSender emailSender,
+        ResendEmailSender emailSender,
         TwilioSmsSender smsSender,
         TwilioWhatsAppSender whatsAppSender,
         ILogger<NotificationService> logger)
@@ -22,10 +22,10 @@ public class NotificationService : INotificationService
         _logger = logger;
     }
 
-    public async Task EnviarEmailAsync(string email, string asunto, string contenido, CancellationToken ct = default)
+    public async Task EnviarEmailAsync(string destino, string asunto, string mensaje, CancellationToken ct = default)
     {
-        _logger.LogInformation("Enviando email a {Email} con asunto {Asunto}", email, asunto);
-        await _emailSender.SendAsync(email, asunto, contenido, null, ct);
+        _logger.LogInformation("Enviando email a {Destino}", destino);
+        await _emailSender.SendAsync(destino, asunto, mensaje, ct);
     }
 
     public async Task EnviarWhatsAppAsync(string telefono, string mensaje, CancellationToken ct = default)
@@ -33,7 +33,7 @@ public class NotificationService : INotificationService
         _logger.LogInformation("Enviando WhatsApp a {Telefono}", telefono);
         await _whatsAppSender.SendAsync(telefono, mensaje);
     }
-
+    
     public async Task EnviarSmsAsync(string telefono, string mensaje, CancellationToken ct = default)
     {
         _logger.LogInformation("Enviando SMS a {Telefono}", telefono);

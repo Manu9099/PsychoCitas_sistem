@@ -12,15 +12,16 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<NotaSesion> NotasSesion => Set<NotaSesion>();
     public DbSet<Pago> Pagos => Set<Pago>();
     public DbSet<Notificacion> Notificaciones => Set<Notificacion>();
+    public DbSet<Usuario> Usuarios => Set<Usuario>();
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    protected override void OnModelCreating(ModelBuilder builder)
     {
-        modelBuilder.HasPostgresEnum<EstadoCita>("estado_cita");
-        modelBuilder.HasPostgresEnum<Modalidad>("modalidad");
-        modelBuilder.HasPostgresEnum<TipoSesion>("tipo_sesion");
+    builder.HasPostgresEnum<EstadoCita>();
+    builder.HasPostgresEnum<Modalidad>();
+    builder.HasPostgresEnum<TipoSesion>();
 
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
-        base.OnModelCreating(modelBuilder);
+    builder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+        base.OnModelCreating(builder);
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken ct = default)

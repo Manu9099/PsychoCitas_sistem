@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PsychoCitas.Application.Features.Notas.Commands;
+using PsychoCitas.Application.Features.Notas.Queries;
 
 namespace PsychoCitas.API.Controllers;
 
@@ -10,7 +11,10 @@ namespace PsychoCitas.API.Controllers;
 [Authorize]
 public class NotasController(IMediator mediator) : ControllerBase
 {
-    /// <summary>Guardar o actualizar nota de sesión</summary>
+    [HttpGet]
+    public async Task<IActionResult> Obtener(Guid citaId, CancellationToken ct) =>
+        Ok(await mediator.Send(new GetNotaByCitaIdQuery(citaId), ct));
+
     [HttpPut]
     public async Task<IActionResult> Guardar(Guid citaId, [FromBody] GuardarNotaCommand command, CancellationToken ct)
     {
@@ -18,11 +22,13 @@ public class NotasController(IMediator mediator) : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>Finalizar nota de sesión</summary>
     [HttpPatch("finalizar")]
     public async Task<IActionResult> Finalizar(Guid citaId, CancellationToken ct)
     {
-        var result = await mediator.Send(new GuardarNotaCommand(citaId, null, null, null, null, null, null, null, null, Finalizar: true), ct);
+        var result = await mediator.Send(
+            new GuardarNotaCommand(citaId, null, null, null, null, null, null, null, null, Finalizar: true),
+            ct);
+
         return Ok(result);
     }
 }

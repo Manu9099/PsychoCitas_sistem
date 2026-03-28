@@ -10,29 +10,30 @@ public class UnitOfWork(AppDbContext context) : IUnitOfWork
 
     public ICitaRepository Citas { get; } = new CitaRepository(context);
     public IPacienteRepository Pacientes { get; } = new PacienteRepository(context);
+    public INotaSesionRepository Notas { get; } = new NotaSesionRepository(context);
+    public IUsuarioRepository Usuarios { get; } = new UsuarioRepository(context);
 
-    public async Task<int> SaveChangesAsync(CancellationToken ct = default)
+    public async Task SaveChangesAsync(CancellationToken ct = default)
     {
-        // Dispatch domain events before saving
-        var entities = context.ChangeTracker.Entries<Domain.Entities.BaseEntity>()
-            .Where(e => e.Entity.DomainEvents.Any())
-            .Select(e => e.Entity)
+        var entities = context.ChangeTracker.Entries()
+            .Where(e => e.Entity is Domain.Entities.BaseEntity be && be.DomainEvents.Any())
+            .Select(e => (Domain.Entities.BaseEntity)e.Entity)
             .ToList();
 
         var events = entities.SelectMany(e => e.DomainEvents).ToList();
         entities.ForEach(e => e.ClearDomainEvents());
 
-        var result = await context.SaveChangesAsync(ct);
-        // TODO: Dispatch events via MediatR/EventBus
-        return result;
+        await context.SaveChangesAsync(ct);
     }
 
-    public async Task BeginTransactionAsync(CancellationToken ct = default)
-        => _transaction = await context.Database.BeginTransactionAsync(ct);
+    public async Task BeginTransactionAsync(CancellationToken ct = default) =>
+        _transaction = await context.Database.BeginTransactionAsync(ct);
 
     public async Task CommitAsync(CancellationToken ct = default)
     {
-        if (_transaction is null) throw new InvalidOperationException("No hay transacción activa.");
+        if (_transaction is null)
+            throw new InvalidOperationException("No hay transacción activa.");
+
         await context.SaveChangesAsync(ct);
         await _transaction.CommitAsync(ct);
     }

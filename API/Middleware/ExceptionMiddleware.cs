@@ -39,6 +39,9 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
                 ex.Message,
                 null
             ),
+            UnauthorizedAccessException => ( 
+                HttpStatusCode.Unauthorized, ex.Message, 
+                null ),
 
             DomainException => (
                 HttpStatusCode.UnprocessableEntity,

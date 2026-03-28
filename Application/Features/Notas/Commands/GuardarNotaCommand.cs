@@ -32,9 +32,15 @@ public class GuardarNotaValidator : AbstractValidator<GuardarNotaCommand>
         RuleFor(x => x.CitaId).NotEmpty();
         RuleFor(x => x.EstadoAnimo).InclusiveBetween(1, 10).When(x => x.EstadoAnimo.HasValue);
         RuleFor(x => x.NivelAnsiedad).InclusiveBetween(0, 10).When(x => x.NivelAnsiedad.HasValue);
-        RuleFor(x => x.AccionesRiesgo).NotEmpty().When(x => x.EvaluacionRiesgo)
+
+        RuleFor(x => x.AccionesRiesgo)
+            .NotEmpty()
+            .When(x => x.EvaluacionRiesgo)
             .WithMessage("Debe describir las acciones ante el riesgo detectado.");
-        RuleFor(x => x.ResumenSesion).NotEmpty().When(x => x.Finalizar)
+
+        RuleFor(x => x.ResumenSesion)
+            .NotEmpty()
+            .When(x => x.Finalizar)
             .WithMessage("El resumen es obligatorio para finalizar la nota.");
     }
 }
@@ -44,25 +50,28 @@ public class GuardarNotaHandler(IUnitOfWork uow, ICurrentUser currentUser)
 {
     public async Task<NotaSesionDto> Handle(GuardarNotaCommand cmd, CancellationToken ct)
     {
-        var cita = await uow.Citas.GetByIdAsync(cmd.CitaId, ct)
+        var cita = await uow.Citas.GetDetalleByIdAsync(cmd.CitaId, ct)
             ?? throw new NotFoundException(nameof(Cita), cmd.CitaId);
 
-        // Obtener o crear nota
-        NotaSesion nota;
-        if (cita.Nota is null)
+        var nota = cita.Nota ?? await uow.Notas.GetByCitaIdAsync(cmd.CitaId, ct);
+        var esNueva = nota is null;
+
+        if (esNueva)
         {
             nota = NotaSesion.Crear(cmd.CitaId, currentUser.UserId);
-            // Se agrega a través del repositorio en una implementación real
-        }
-        else
-        {
-            nota = cita.Nota;
+            await uow.Notas.AddAsync(nota, ct);
         }
 
-        nota.Actualizar(cmd.ResumenSesion, cmd.TecnicasUsadas,
-            cmd.EstadoAnimo, cmd.NivelAnsiedad,
-            cmd.AvanceObjetivos, cmd.TareasAsignadas,
-            cmd.Observaciones, cmd.PlanProximaSesion);
+        nota!.Actualizar(
+            cmd.ResumenSesion,
+            cmd.TecnicasUsadas,
+            cmd.EstadoAnimo,
+            cmd.NivelAnsiedad,
+            cmd.AvanceObjetivos,
+            cmd.TareasAsignadas,
+            cmd.Observaciones,
+            cmd.PlanProximaSesion
+        );
 
         if (cmd.EvaluacionRiesgo && cmd.NivelRiesgo.HasValue)
             nota.RegistrarRiesgo(cmd.NivelRiesgo.Value, cmd.AccionesRiesgo!);
@@ -70,11 +79,25 @@ public class GuardarNotaHandler(IUnitOfWork uow, ICurrentUser currentUser)
         if (cmd.Finalizar)
             nota.Finalizar();
 
+        if (!esNueva)
+            uow.Notas.Update(nota);
+
         await uow.SaveChangesAsync(ct);
 
-        return new NotaSesionDto(nota.Id, nota.CitaId, nota.ResumenSesion,
-            nota.TecnicasUsadas, nota.EstadoAnimo, nota.NivelAnsiedad,
-            nota.AvanceObjetivos, nota.TareasAsignadas, nota.PlanProximaSesion,
-            nota.EvaluacionRiesgo, nota.NivelRiesgo, nota.Finalizada, nota.ActualizadoEn);
+        return new NotaSesionDto(
+            nota.Id,
+            nota.CitaId,
+            nota.ResumenSesion,
+            nota.TecnicasUsadas,
+            nota.EstadoAnimo,
+            nota.NivelAnsiedad,
+            nota.AvanceObjetivos,
+            nota.TareasAsignadas,
+            nota.PlanProximaSesion,
+            nota.EvaluacionRiesgo,
+            nota.NivelRiesgo,
+            nota.Finalizada,
+            nota.ActualizadoEn
+        );
     }
 }

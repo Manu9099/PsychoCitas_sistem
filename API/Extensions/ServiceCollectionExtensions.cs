@@ -51,19 +51,19 @@ public static class ServiceCollectionExtensions
         services.Configure<TwilioOptions>(config.GetSection(TwilioOptions.SectionName));
 
         services.AddOptions();
+
         services.AddHttpClient<ResendClient>();
         services.Configure<ResendClientOptions>(o =>
         {
-            o.ApiToken = config["Resend:ApiKey"]!;
+            o.ApiToken = config["Resend:ApiKey"] ?? string.Empty;
         });
-        Console.WriteLine($"RESEND KEY LEIDA EN DI: {!string.IsNullOrWhiteSpace(config["Resend:ApiKey"])}");
 
         services.AddTransient<IResend, ResendClient>();
 
         services.AddScoped<ResendEmailSender>();
         services.AddScoped<TwilioSmsSender>();
         services.AddScoped<TwilioWhatsAppSender>();
-        services.AddScoped<INotificationService, PsychoCitas.Infrastructure.Services.Notifications.NotificationService>();
+        services.AddScoped<INotificationService, NotificationService>();
 
         return services;
     }

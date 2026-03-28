@@ -140,9 +140,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services
-    .AddApplicationServices(builder.Configuration)
-    .AddInfrastructureServices(builder.Configuration);
+
 
 var app = builder.Build();
 

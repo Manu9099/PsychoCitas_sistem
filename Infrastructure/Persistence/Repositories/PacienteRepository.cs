@@ -4,13 +4,16 @@ using PsychoCitas.Domain.Interfaces;
 
 namespace PsychoCitas.Infrastructure.Persistence.Repositories;
 
-public class PacienteRepository(AppDbContext context) : BaseRepository<Paciente>(context), IPacienteRepository
+public class PacienteRepository(AppDbContext context)
+    : BaseRepository<Paciente>(context), IPacienteRepository
 {
-    public async Task<Paciente?> GetByDniAsync(string dni, CancellationToken ct = default) =>
-        await _dbSet.FirstOrDefaultAsync(p => p.Dni == dni, ct);
+    public async Task<Paciente?> GetByDniAsync(string dni, CancellationToken ct = default)
+        => await _dbSet.FirstOrDefaultAsync(p => p.Dni == dni, ct);
 
-    public async Task<Paciente?> GetByEmailAsync(string email, CancellationToken ct = default) =>
-        await _dbSet.FirstOrDefaultAsync(p => p.Email == email.Trim().ToLowerInvariant(), ct);
+    public async Task<Paciente?> GetByEmailAsync(string email, CancellationToken ct = default)
+        => await _dbSet.FirstOrDefaultAsync(
+            p => p.Email != null && p.Email == email.Trim().ToLower(),
+            ct);
 
     public async Task<List<Paciente>> BuscarAsync(string termino, CancellationToken ct = default)
     {
@@ -28,8 +31,8 @@ public class PacienteRepository(AppDbContext context) : BaseRepository<Paciente>
             .ToListAsync(ct);
     }
 
-    public async Task<Paciente?> GetConHistoriaAsync(Guid id, CancellationToken ct = default) =>
-        await _dbSet
+    public async Task<Paciente?> GetConHistoriaAsync(Guid id, CancellationToken ct = default)
+        => await _dbSet
             .Include(p => p.HistoriaClinica)
             .FirstOrDefaultAsync(p => p.Id == id, ct);
 }

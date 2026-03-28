@@ -6,6 +6,8 @@ using PsychoCitas.API.Middleware;
 using System.Text;
 using PsychoCitas.API.Services;
 using PsychoCitas.Application.Common.Interfaces;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -84,33 +86,30 @@ builder.Services
             OnMessageReceived = context =>
             {
                 var authHeader = context.Request.Headers.Authorization.ToString();
-                Console.WriteLine($"AUTH HEADER RAW: [{authHeader}]");
+              
 
                 if (!string.IsNullOrWhiteSpace(authHeader) &&
                     authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
                 {
                     context.Token = authHeader["Bearer ".Length..].Trim();
-                    Console.WriteLine($"TOKEN EXTRAIDO: [{context.Token}]");
+                  
                 }
 
                 return Task.CompletedTask;
             },
             OnAuthenticationFailed = context =>
             {
-                Console.WriteLine("AUTH FAILED:");
-                Console.WriteLine(context.Exception.Message);
+                
                 return Task.CompletedTask;
             },
             OnChallenge = context =>
             {
-                Console.WriteLine("JWT CHALLENGE:");
-                Console.WriteLine($"Error: {context.Error}");
-                Console.WriteLine($"Description: {context.ErrorDescription}");
+        
                 return Task.CompletedTask;
             },
             OnTokenValidated = context =>
             {
-                Console.WriteLine("TOKEN VALIDADO CORRECTAMENTE");
+              
                 return Task.CompletedTask;
             }
         };
@@ -140,7 +139,16 @@ builder.Services.AddCors(options =>
     });
 });
 
-
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("PublicBooking", limiter =>
+    {
+        limiter.PermitLimit = 10;
+        limiter.Window = TimeSpan.FromMinutes(1);
+        limiter.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        limiter.QueueLimit = 0;
+    });
+});
 
 var app = builder.Build();
 
@@ -154,5 +162,5 @@ app.UseCors("FrontendPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-
+app.UseRateLimiter();
 app.Run();

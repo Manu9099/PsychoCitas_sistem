@@ -13,6 +13,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Pago> Pagos => Set<Pago>();
     public DbSet<Notificacion> Notificaciones => Set<Notificacion>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();
+    public DbSet<DocumentoPaciente> DocumentosPaciente => Set<DocumentoPaciente>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

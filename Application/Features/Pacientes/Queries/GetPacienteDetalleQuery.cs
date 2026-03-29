@@ -11,6 +11,7 @@ public record GetPacienteDetalleQuery(Guid PacienteId) : IRequest<PacienteDetall
 
 public class GetPacienteDetalleHandler(IUnitOfWork uow)
     : IRequestHandler<GetPacienteDetalleQuery, PacienteDetalleDto>
+    
 {
     public async Task<PacienteDetalleDto> Handle(GetPacienteDetalleQuery query, CancellationToken ct)
     {
@@ -19,6 +20,9 @@ public class GetPacienteDetalleHandler(IUnitOfWork uow)
 
         var citas = await uow.Citas.GetByPacienteAsync(query.PacienteId, ct);
         var citasList = citas.ToList();
+
+       var documentos = await uow.DocumentosPaciente.GetByPacienteIdAsync(query.PacienteId, ct);
+
 
         var sesionesCompletadas = citasList.Count(c => c.Estado == EstadoCita.Completada);
         var inasistencias = citasList.Count(c => c.Estado == EstadoCita.NoAsistio);
@@ -45,5 +49,6 @@ public class GetPacienteDetalleHandler(IUnitOfWork uow)
             paciente.Genero, paciente.Ocupacion, paciente.EstadoCivil,
             paciente.Direccion, paciente.ReferidoPor, paciente.Activo,
             historiaDto, sesionesCompletadas, inasistencias, ultimaSesion, deudaPendiente);
+            
     }
 }

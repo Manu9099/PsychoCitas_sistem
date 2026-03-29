@@ -20,6 +20,7 @@ public class Paciente : BaseEntity
     // Navegación
     public HistoriaClinica? HistoriaClinica { get; private set; }
     public ICollection<Cita> Citas { get; private set; } = [];
+    public ICollection<DocumentoPaciente> Documentos { get; private set; } = [];
 
     protected Paciente() { }
 

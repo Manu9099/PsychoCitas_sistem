@@ -9,7 +9,7 @@ public interface IUnitOfWork : IDisposable
     INotaSesionRepository Notas { get; }
     IUsuarioRepository Usuarios { get; }
     INotificacionRepository Notificaciones { get; }
-
+    IDocumentoPacienteRepository DocumentosPaciente { get; }
     Task SaveChangesAsync(CancellationToken ct = default);
     Task BeginTransactionAsync(CancellationToken ct = default);
     Task CommitAsync(CancellationToken ct = default);

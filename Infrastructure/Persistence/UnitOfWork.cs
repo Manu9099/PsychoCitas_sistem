@@ -14,6 +14,7 @@ public class UnitOfWork(AppDbContext context) : IUnitOfWork
     public INotaSesionRepository Notas { get; } = new NotaSesionRepository(context);
     public IUsuarioRepository Usuarios { get; } = new UsuarioRepository(context);
     public INotificacionRepository Notificaciones { get; } = new NotificacionRepository(context);
+    public IDocumentoPacienteRepository DocumentosPaciente { get; } = new DocumentoPacienteRepository(context);
 
     public async Task SaveChangesAsync(CancellationToken ct = default)
     {

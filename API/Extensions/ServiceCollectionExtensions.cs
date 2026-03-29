@@ -11,7 +11,7 @@ using PsychoCitas.Application.Common.Behaviors;
 using PsychoCitas.Infrastructure.Options;
 using PsychoCitas.Infrastructure.Services.Notifications;
 using Resend;
-
+using PsychoCitas.Infrastructure.Services.Storage;
 
 namespace PsychoCitas.API.Extensions;
 
@@ -66,6 +66,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<TwilioWhatsAppSender>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddHostedService<ReminderWorker>();
+
+        services.Configure<LocalStorageOptions>(config.GetSection(LocalStorageOptions.SectionName));
+        services.AddScoped<IStorageService, LocalStorageService>();
 
         return services;
     }

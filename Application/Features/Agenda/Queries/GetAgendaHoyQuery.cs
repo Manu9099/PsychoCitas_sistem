@@ -15,15 +15,28 @@ public class GetAgendaHoyHandler(IUnitOfWork uow, ICurrentUser currentUser)
         var psicologoId = query.PsicologoId ?? currentUser.UserId;
         var citas = await uow.Citas.GetAgendaDiaAsync(psicologoId, DateOnly.FromDateTime(DateTime.Today), ct);
 
-        return citas.Select(c => new CitaDto(
-            c.Id, c.PacienteId,
-            c.Paciente?.NombreCompleto ?? string.Empty,
-            c.Paciente?.Telefono,
-            c.PsicologoId, c.FechaInicio, c.FechaFin,
-            c.TipoSesion, c.Modalidad, c.Estado,
-            c.LinkVideollamada, c.NumeroSesion, c.EsPrimeraVez, c.NotasPrevias,
-            c.MotivoCancelacion,
-            c.Pago?.Estado, c.Pago?.Monto,
-            c.Nota is not null));
+            return citas.Select(cita => new CitaDto(
+                cita.Id,
+                cita.PacienteId,
+                $"{cita.Paciente?.Nombres} {cita.Paciente?.Apellidos}".Trim(),
+                cita.Paciente?.Telefono,
+                cita.PsicologoId,
+                cita.FechaInicio,
+                cita.FechaFin,
+                cita.TipoSesion,
+                cita.Modalidad,
+                cita.Estado,
+                cita.LinkVideollamada,
+                cita.NumeroSesion,
+                cita.EsPrimeraVez,
+                cita.NotasPrevias,
+                cita.MotivoCancelacion,
+                cita.Pago?.Estado,
+                cita.Pago?.Monto,
+                cita.Pago?.MontoPagado,
+                cita.Pago?.Saldo,
+                cita.Pago?.MetodoPago,
+                cita.Nota is not null
+            )).ToList();
     }
 }

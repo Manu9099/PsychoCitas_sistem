@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using PsychoCitas.Application.Features.Pagos.Commands;
 using PsychoCitas.Application.Features.Publico.Commands;
 using PsychoCitas.Application.Features.Publico.Queries;
 
@@ -34,5 +35,19 @@ public class PublicCitasController(IMediator mediator) : ControllerBase
     {
         var result = await mediator.Send(command, ct);
         return CreatedAtAction(nameof(CrearCitaPublica), new { id = result.CitaId }, result);
+    }
+    [HttpPost("checkout")]
+    public async Task<IActionResult> CrearCheckout([FromBody] CrearCheckoutPagoCommand command, CancellationToken ct)
+    {
+        var result = await mediator.Send(command, ct);
+        return Ok(result);
+    }
+
+    [AllowAnonymous]
+    [HttpPost("callback/mock")]
+    public async Task<IActionResult> ConfirmarMock([FromBody] ConfirmarPagoIntentoCommand command, CancellationToken ct)
+    {
+        var result = await mediator.Send(command, ct);
+        return Ok(result);
     }
 }

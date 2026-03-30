@@ -20,8 +20,10 @@ public record CitaDto(
     string? MotivoCancelacion,
     EstadoPago? EstadoPago,
     decimal? MontoCita,
-    bool TieneNota
-);
+    decimal? MontoPagado,
+    decimal? SaldoPago,
+    string? MetodoPago,
+    bool TieneNota);
 
 public record CitaResumenDto(
     Guid Id,

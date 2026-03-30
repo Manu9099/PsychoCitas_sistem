@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PsychoCitas.Domain.Enums;
@@ -13,9 +14,11 @@ using PsychoCitas.Infrastructure.Persistence;
 namespace PsychoCitas.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260329185359_PR10_PagosFase1")]
+    partial class PR10_PagosFase1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -173,42 +176,6 @@ namespace PsychoCitas.Infrastructure.Migrations
                     b.ToTable("documentos_paciente", (string)null);
                 });
 
-            modelBuilder.Entity("PsychoCitas.Domain.Entities.EventoPago", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("ActualizadoEn")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("CreadoEn")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("IntentoPagoId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("PayloadRaw")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Proveedor")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("ProviderEventId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("TipoEvento")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IntentoPagoId");
-
-                    b.ToTable("EventosPago");
-                });
-
             modelBuilder.Entity("PsychoCitas.Domain.Entities.HistoriaClinica", b =>
                 {
                     b.Property<Guid>("Id")
@@ -286,56 +253,6 @@ namespace PsychoCitas.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("historia_clinica", (string)null);
-                });
-
-            modelBuilder.Entity("PsychoCitas.Domain.Entities.IntentoPago", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("ActualizadoEn")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CheckoutUrl")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("CreadoEn")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Estado")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("ExpiraEn")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ExternalReference")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Moneda")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<decimal>("Monto")
-                        .HasColumnType("numeric");
-
-                    b.Property<Guid>("PagoId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Proveedor")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("ProviderPaymentId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("RawResponse")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PagoId");
-
-                    b.ToTable("IntentosPago");
                 });
 
             modelBuilder.Entity("PsychoCitas.Domain.Entities.NotaSesion", b =>
@@ -702,17 +619,6 @@ namespace PsychoCitas.Infrastructure.Migrations
                     b.Navigation("Paciente");
                 });
 
-            modelBuilder.Entity("PsychoCitas.Domain.Entities.EventoPago", b =>
-                {
-                    b.HasOne("PsychoCitas.Domain.Entities.IntentoPago", "IntentoPago")
-                        .WithMany()
-                        .HasForeignKey("IntentoPagoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("IntentoPago");
-                });
-
             modelBuilder.Entity("PsychoCitas.Domain.Entities.HistoriaClinica", b =>
                 {
                     b.HasOne("PsychoCitas.Domain.Entities.Paciente", "Paciente")
@@ -722,17 +628,6 @@ namespace PsychoCitas.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Paciente");
-                });
-
-            modelBuilder.Entity("PsychoCitas.Domain.Entities.IntentoPago", b =>
-                {
-                    b.HasOne("PsychoCitas.Domain.Entities.Pago", "Pago")
-                        .WithMany()
-                        .HasForeignKey("PagoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Pago");
                 });
 
             modelBuilder.Entity("PsychoCitas.Domain.Entities.NotaSesion", b =>

@@ -12,6 +12,7 @@ using PsychoCitas.Infrastructure.Options;
 using PsychoCitas.Infrastructure.Services.Notifications;
 using Resend;
 using PsychoCitas.Infrastructure.Services.Storage;
+using PsychoCitas.Infrastructure.Services.Payments;
 
 namespace PsychoCitas.API.Extensions;
 
@@ -69,6 +70,8 @@ public static class ServiceCollectionExtensions
 
         services.Configure<LocalStorageOptions>(config.GetSection(LocalStorageOptions.SectionName));
         services.AddScoped<IStorageService, LocalStorageService>();
+
+        services.AddScoped<IPaymentGateway, MockPaymentGateway>();
 
         return services;
     }

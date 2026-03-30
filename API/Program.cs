@@ -62,7 +62,8 @@ var jwtIssuer = builder.Configuration["Jwt:Issuer"]
 
 var jwtAudience = builder.Configuration["Jwt:Audience"]
     ?? throw new InvalidOperationException("Jwt:Audience no está configurado");
-
+    
+ 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -150,13 +151,16 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 
+builder.Services.AddHealthChecks() .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection")!);
+
+
 var app = builder.Build();
 
 await app.SeedAdminAsync();
 
 app.UseSwagger();
 app.UseSwaggerUI();
-
+app.MapHealthChecks("/health");
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors("FrontendPolicy");
 app.UseAuthentication();

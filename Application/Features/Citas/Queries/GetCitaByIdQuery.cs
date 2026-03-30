@@ -18,7 +18,7 @@ public class GetCitaByIdHandler(IUnitOfWork uow) : IRequestHandler<GetCitaByIdQu
         return new CitaDto(
             cita.Id,
             cita.PacienteId,
-            cita.Paciente?.NombreCompleto ?? string.Empty,
+            $"{cita.Paciente?.Nombres} {cita.Paciente?.Apellidos}".Trim(),
             cita.Paciente?.Telefono,
             cita.PsicologoId,
             cita.FechaInicio,
@@ -33,6 +33,9 @@ public class GetCitaByIdHandler(IUnitOfWork uow) : IRequestHandler<GetCitaByIdQu
             cita.MotivoCancelacion,
             cita.Pago?.Estado,
             cita.Pago?.Monto,
+            cita.Pago?.MontoPagado,
+            cita.Pago?.Saldo,
+            cita.Pago?.MetodoPago,
             cita.Nota is not null
         );
     }

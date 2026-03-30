@@ -14,6 +14,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Notificacion> Notificaciones => Set<Notificacion>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();
     public DbSet<DocumentoPaciente> DocumentosPaciente => Set<DocumentoPaciente>();
+    public DbSet<IntentoPago> IntentosPago => Set<IntentoPago>();
+    public DbSet<EventoPago> EventosPago => Set<EventoPago>();
+
+    
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

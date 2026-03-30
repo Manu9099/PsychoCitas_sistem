@@ -23,7 +23,8 @@ public record CitaDto(
     decimal? MontoPagado,
     decimal? SaldoPago,
     string? MetodoPago,
-    bool TieneNota);
+    bool TieneNota
+);
 
 public record CitaResumenDto(
     Guid Id,

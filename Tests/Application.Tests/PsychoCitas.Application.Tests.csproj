@@ -18,10 +18,12 @@
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="coverlet.collector" Version="6.0.2">
       <PrivateAssets>all</PrivateAssets>
+      
     </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
+   <ProjectReference Include="..\..\API\PsychoCitas.API.csproj" />
     <ProjectReference Include="..\..\Application\PsychoCitas.Application.csproj" />
     <ProjectReference Include="..\..\Domain\PsychoCitas.Domain.csproj" />
   </ItemGroup>

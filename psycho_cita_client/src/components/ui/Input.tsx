@@ -1,6 +1,15 @@
 import React from 'react'
 
-const Input = React.forwardRef(
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label?: string
+  hint?: string
+  error?: string
+  className?: string
+  inputClassName?: string
+  id?: string
+}
+
+const Input = React.forwardRef<HTMLInputElement, InputProps>(
   (
     {
       label,

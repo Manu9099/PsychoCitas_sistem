@@ -1,6 +1,17 @@
 import React from 'react'
 
-function getVariantClasses(variant) {
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
+type ButtonSize = 'sm' | 'md' | 'lg'
+
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  children?: React.ReactNode
+  variant?: ButtonVariant
+  size?: ButtonSize
+  loading?: boolean
+  className?: string
+}
+
+function getVariantClasses(variant: ButtonVariant) {
   switch (variant) {
     case 'secondary':
       return 'bg-white text-slate-900 border border-slate-300 hover:bg-slate-50'
@@ -13,7 +24,7 @@ function getVariantClasses(variant) {
   }
 }
 
-function getSizeClasses(size) {
+function getSizeClasses(size: ButtonSize) {
   switch (size) {
     case 'sm':
       return 'h-9 px-3 text-sm rounded-xl'
@@ -24,7 +35,7 @@ function getSizeClasses(size) {
   }
 }
 
-const Button = React.forwardRef(
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
       children,

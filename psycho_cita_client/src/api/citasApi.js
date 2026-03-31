@@ -1,6 +1,11 @@
 import { api } from './axios'
 
 export const citasApi = {
+  getAll: async () => {
+    const { data } = await api.get('/api/citas')
+    return data
+  },
+
   getAgendaHoy: async (psicologoId) => {
     const { data } = await api.get('/api/citas/agenda/hoy', {
       params: psicologoId ? { psicologoId } : {},

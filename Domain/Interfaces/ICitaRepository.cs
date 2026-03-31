@@ -11,4 +11,5 @@ public interface ICitaRepository : IRepository<Cita>
     Task<bool> ExisteSolapamientoAsync(Guid psicologoId, DateTime inicio, DateTime fin, Guid? excluirId = null, CancellationToken ct = default);
     Task<int> ContarSesionesCompletadasAsync(Guid pacienteId, Guid psicologoId, CancellationToken ct = default);
     Task<List<Cita>> GetProximasConRecordatorioAsync(DateTime desde, DateTime hasta, CancellationToken ct = default);
+    Task<List<Cita>> GetAllConDetallesAsync(CancellationToken ct = default);
 }

@@ -1,4 +1,13 @@
+import React from 'react'
 import Button from './Button'
+
+interface EmptyStateProps {
+  title?: string
+  description?: string
+  actionLabel?: string
+  onAction?: () => void
+  className?: string
+}
 
 export default function EmptyState({
   title = 'Sin resultados',
@@ -6,7 +15,7 @@ export default function EmptyState({
   actionLabel,
   onAction,
   className = '',
-}) {
+}: EmptyStateProps) {
   return (
     <div
       className={[

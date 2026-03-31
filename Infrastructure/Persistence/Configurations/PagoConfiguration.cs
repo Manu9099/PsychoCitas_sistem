@@ -24,8 +24,8 @@ public class PagoConfiguration : IEntityTypeConfiguration<Pago>
         builder.Property(p => p.PagadoEn).HasColumnName("pagado_en");
         builder.Property(p => p.RegistradoPor).HasColumnName("registrado_por");
 
-        builder.Ignore(p => p.CreadoEn);
-        builder.Ignore(p => p.ActualizadoEn);
+        builder.Property(p => p.CreadoEn).HasColumnName("creado_en");
+        builder.Property(p => p.ActualizadoEn).HasColumnName("actualizado_en");
 
         builder.HasOne(p => p.Cita)
             .WithOne(c => c.Pago) // o WithMany(c => c.Pagos), según tu modelo final

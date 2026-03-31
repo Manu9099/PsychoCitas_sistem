@@ -14,6 +14,7 @@ public class Pago : BaseEntity
     public string? NumeroOperacion { get; private set; }
     public string? Notas { get; private set; }
     public Guid? RegistradoPor { get; private set; }
+   // public DateTime CreadoEn { get; private set; }
     public DateTime? PagadoEn { get; private set; }
 
     public Cita? Cita { get; private set; }
@@ -23,10 +24,15 @@ public class Pago : BaseEntity
     public static Pago Crear(Guid citaId, Guid pacienteId, decimal monto, Guid? registradoPor = null)
     {
         if (monto <= 0) throw new DomainException("El monto debe ser mayor a cero.");
+
         return new Pago
         {
-            CitaId = citaId, PacienteId = pacienteId, Monto = monto,
-            Estado = EstadoPago.Pendiente, RegistradoPor = registradoPor
+            CitaId = citaId,
+            PacienteId = pacienteId,
+            Monto = monto,
+            Estado = EstadoPago.Pendiente,
+            RegistradoPor = registradoPor,
+            CreadoEn = DateTime.UtcNow
         };
     }
 
@@ -43,6 +49,11 @@ public class Pago : BaseEntity
         Estado = montoPagado >= Monto ? EstadoPago.Pagado : EstadoPago.Parcial;
     }
 
-    public void Exonerar(string motivo) { Estado = EstadoPago.Exonerado; Notas = motivo; }
+    public void Exonerar(string motivo)
+    {
+        Estado = EstadoPago.Exonerado;
+        Notas = motivo;
+    }
+
     public decimal Saldo => Monto - MontoPagado;
 }

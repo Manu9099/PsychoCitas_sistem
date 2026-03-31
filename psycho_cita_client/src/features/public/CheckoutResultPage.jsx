@@ -11,28 +11,97 @@ import {
 } from '../../components/ui/Card'
 import { publicApi } from '../../api/publicApi'
 
+function getCheckoutUrl(checkout) {
+  return (
+    checkout?.checkoutUrl ||
+    checkout?.CheckoutUrl ||
+    checkout?.url ||
+    checkout?.paymentUrl ||
+    checkout?.redirectUrl ||
+    ''
+  )
+}
+
+function getExternalReference(checkout) {
+  return (
+    checkout?.externalReference ||
+    checkout?.ExternalReference ||
+    ''
+  )
+}
+
+function getMonto(checkout) {
+  return Number(
+    checkout?.monto ??
+    checkout?.Monto ??
+    checkout?.amount ??
+    0
+  )
+}
+
 export default function CheckoutResultPage() {
   const location = useLocation()
   const navigate = useNavigate()
 
-  const booking = location.state?.booking
-  const checkout = location.state?.checkout
-  const checkoutUrl = location.state?.checkoutUrl || ''
+  const booking = location.state?.booking || null
+  const checkout = location.state?.checkout || null
+
+  const checkoutUrl = getCheckoutUrl(checkout)
+  const externalReference = getExternalReference(checkout)
+  const monto = getMonto(checkout)
+
+  const handleOpenCheckout = () => {
+    console.log('checkout state', { booking, checkout, checkoutUrl, externalReference, monto })
+
+    if (!checkoutUrl) {
+      alert('No llegó checkoutUrl desde el backend')
+      return
+    }
+
+    window.open(checkoutUrl, '_blank', 'noopener,noreferrer')
+  }
 
   const handleMockConfirm = async () => {
-    const citaId = booking?.citaId || booking?.id
-    const pagoIntentId =
-      checkout?.pagoIntentId || checkout?.intentId || checkout?.id
+    try {
+      console.log('mock input', { booking, checkout, externalReference, monto })
 
-    if (!citaId || !pagoIntentId) return
+      if (!externalReference) {
+        alert('No llegó externalReference desde el backend')
+        return
+      }
 
-    await publicApi.confirmarMock({
-      citaId,
-      pagoIntentId,
-      estado: 'Confirmado',
-    })
+      if (!monto || monto <= 0) {
+        alert('No llegó un monto válido desde el backend')
+        return
+      }
 
-    navigate('/app/pagos')
+      const payload = {
+        externalReference,
+        montoPagado: monto,
+        metodoPago: 'MockCheckout',
+        numeroOperacion: `MOCK-${Date.now()}`,
+        payloadRaw: JSON.stringify({
+          source: 'frontend-mock',
+          booking,
+          checkout,
+        }),
+      }
+
+      console.log('mock confirm payload', payload)
+
+      const result = await publicApi.confirmarMock(payload)
+      console.log('mock confirm result', result)
+
+      alert('Pago mock confirmado')
+      navigate('/app/pagos')
+    } catch (err) {
+      console.error('mock confirm error', err?.response?.data || err)
+      alert(
+        err?.response?.data?.message ||
+        err?.response?.data?.title ||
+        'No se pudo confirmar el pago mock'
+      )
+    }
   }
 
   return (
@@ -64,28 +133,31 @@ export default function CheckoutResultPage() {
             </div>
 
             <div className="rounded-2xl border border-slate-200 p-4">
-              <p className="text-sm text-slate-500">Intento de pago</p>
+              <p className="text-sm text-slate-500">Referencia externa</p>
               <p className="mt-1 break-all font-medium text-slate-900">
-                {checkout?.pagoIntentId || checkout?.intentId || checkout?.id || 'No disponible'}
+                {externalReference || 'No disponible'}
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 p-4">
+              <p className="text-sm text-slate-500">Checkout URL</p>
+              <p className="mt-1 break-all font-medium text-slate-900">
+                {checkoutUrl || 'No disponible'}
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 p-4">
+              <p className="text-sm text-slate-500">Monto</p>
+              <p className="mt-1 font-medium text-slate-900">
+                {monto || 'No disponible'}
               </p>
             </div>
 
             <div className="flex flex-col gap-3 md:flex-row">
-              {checkoutUrl ? (
-                <a
-                  href={checkoutUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-medium text-white"
-                >
-                  Ir al checkout
-                  <ExternalLink className="h-4 w-4" />
-                </a>
-              ) : (
-                <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-                  No vino URL de checkout. Revisa la respuesta real del backend.
-                </div>
-              )}
+              <Button onClick={handleOpenCheckout}>
+                <ExternalLink className="h-4 w-4" />
+                Ir al checkout
+              </Button>
 
               <Button variant="secondary" onClick={handleMockConfirm}>
                 <CreditCard className="h-4 w-4" />

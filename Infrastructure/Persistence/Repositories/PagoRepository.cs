@@ -21,6 +21,6 @@ public class PagoRepository(AppDbContext context)
         => await _dbSet
             .Include(p => p.Cita)
             .Where(p => p.PacienteId == pacienteId)
-            .OrderByDescending(p => p.CreadoEn)
+            .OrderByDescending(p => p.PagadoEn ?? p.CreadoEn)
             .ToListAsync(ct);
 }

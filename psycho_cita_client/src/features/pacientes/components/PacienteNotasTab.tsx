@@ -1,20 +1,118 @@
 import { useEffect, useMemo, useState } from 'react'
-import { AlertCircle, CalendarDays, CheckCircle2, FilePenLine, Save } from 'lucide-react'
+import {
+  AlertCircle,
+  CalendarDays,
+  CheckCircle2,
+  FilePenLine,
+  Save,
+} from 'lucide-react'
 import Button from '../../../components/ui/Button'
 import EmptyState from '../../../components/ui/EmptyState'
 import Input from '../../../components/ui/Input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/Card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '../../../components/ui/Card'
 import { citasApi } from '../../../api/citasApi'
 import { notasApi } from '../../../api/notasApi'
 
-const RISK_OPTIONS = ['', 'Bajo', 'Moderado', 'Alto', 'Critico']
+// ============================================================================
+// CONSTANTES Y MAPEOS
+// ============================================================================
 
-function createEmptyForm() {
+const TIPO_SESION_MAP = {
+  0: 'Individual',
+  1: 'Pareja',
+  2: 'Familia',
+  3: 'Grupo',
+  4: 'Evaluación',
+  5: 'Seguimiento',
+}
+
+const MODALIDAD_MAP = {
+  0: 'Presencial',
+  1: 'Videollamada',
+  2: 'Telefónica',
+}
+
+const NIVEL_RIESGO_OPTIONS = ['', 'Bajo', 'Moderado', 'Alto', 'Crítico']
+
+// ============================================================================
+// TIPOS
+// ============================================================================
+
+interface Cita {
+  id: string
+  fechaInicio: string
+  tipoSesion: number | string
+  modalidad: number | string
+  estado: string
+}
+
+interface Nota {
+  resumenSesion?: string
+  tecnicasUsadas?: string[]
+  estadoAnimo?: number | null
+  nivelAnsiedad?: number | null
+  avanceObjetivos?: string
+  tareasAsignadas?: string
+  planProximaSesion?: string
+  evaluacionRiesgo?: boolean
+  nivelRiesgo?: string | null
+  finalizada?: boolean
+  actualizadoEn?: string | null
+}
+
+interface FormState extends Nota {
+  tecnicasUsadasText: string
+}
+
+// ============================================================================
+// NORMALIZADORES Y UTILIDADES
+// ============================================================================
+
+function formatDateTime(value: string | null | undefined): string {
+  if (!value) return 'Sin fecha'
+
+  try {
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return value
+
+    return date.toLocaleString('es-PE', {
+      year: 'numeric',
+      month: 'short',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  } catch {
+    return 'Fecha inválida'
+  }
+}
+
+function getTipoSesionLabel(tipoSesion: number | string | undefined): string {
+  if (tipoSesion === undefined || tipoSesion === null) return 'No especificado'
+
+  const tipo = typeof tipoSesion === 'number' ? tipoSesion : parseInt(tipoSesion, 10)
+  return TIPO_SESION_MAP[tipo as keyof typeof TIPO_SESION_MAP] || String(tipoSesion)
+}
+
+function getModalidadLabel(modalidad: number | string | undefined): string {
+  if (modalidad === undefined || modalidad === null) return 'No especificada'
+
+  const mod = typeof modalidad === 'number' ? modalidad : parseInt(modalidad, 10)
+  return MODALIDAD_MAP[mod as keyof typeof MODALIDAD_MAP] || String(modalidad)
+}
+
+function createEmptyForm(): FormState {
   return {
     resumenSesion: '',
     tecnicasUsadasText: '',
-    estadoAnimo: '',
-    nivelAnsiedad: '',
+    estadoAnimo: null,
+    nivelAnsiedad: null,
     avanceObjetivos: '',
     tareasAsignadas: '',
     planProximaSesion: '',
@@ -25,48 +123,35 @@ function createEmptyForm() {
   }
 }
 
-function formatDateTime(value) {
-  if (!value) return 'Sin fecha'
+function mapNoteToForm(nota: Nota | null | undefined): FormState {
+  if (!nota) return createEmptyForm()
 
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-
-  return date.toLocaleString('es-PE', {
-    year: 'numeric',
-    month: 'short',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
-
-function mapNoteToForm(note) {
   return {
-    resumenSesion: note?.resumenSesion || '',
-    tecnicasUsadasText: Array.isArray(note?.tecnicasUsadas)
-      ? note.tecnicasUsadas.join(', ')
+    resumenSesion: nota.resumenSesion || '',
+    tecnicasUsadasText: Array.isArray(nota.tecnicasUsadas)
+      ? nota.tecnicasUsadas.join(', ')
       : '',
-    estadoAnimo: note?.estadoAnimo ?? '',
-    nivelAnsiedad: note?.nivelAnsiedad ?? '',
-    avanceObjetivos: note?.avanceObjetivos || '',
-    tareasAsignadas: note?.tareasAsignadas || '',
-    planProximaSesion: note?.planProximaSesion || '',
-    evaluacionRiesgo: Boolean(note?.evaluacionRiesgo),
-    nivelRiesgo: note?.nivelRiesgo || '',
-    finalizada: Boolean(note?.finalizada),
-    actualizadoEn: note?.actualizadoEn || null,
+    estadoAnimo: nota.estadoAnimo ?? null,
+    nivelAnsiedad: nota.nivelAnsiedad ?? null,
+    avanceObjetivos: nota.avanceObjetivos || '',
+    tareasAsignadas: nota.tareasAsignadas || '',
+    planProximaSesion: nota.planProximaSesion || '',
+    evaluacionRiesgo: Boolean(nota.evaluacionRiesgo),
+    nivelRiesgo: nota.nivelRiesgo || '',
+    finalizada: Boolean(nota.finalizada),
+    actualizadoEn: nota.actualizadoEn || null,
   }
 }
 
-function buildPayload(form) {
+function buildPayload(form: FormState): Partial<Nota> {
   return {
     resumenSesion: form.resumenSesion,
     tecnicasUsadas: form.tecnicasUsadasText
       .split(',')
       .map((item) => item.trim())
       .filter(Boolean),
-    estadoAnimo: form.estadoAnimo === '' ? null : Number(form.estadoAnimo),
-    nivelAnsiedad: form.nivelAnsiedad === '' ? null : Number(form.nivelAnsiedad),
+    estadoAnimo: form.estadoAnimo === null ? null : form.estadoAnimo,
+    nivelAnsiedad: form.nivelAnsiedad === null ? null : form.nivelAnsiedad,
     avanceObjetivos: form.avanceObjetivos,
     tareasAsignadas: form.tareasAsignadas,
     planProximaSesion: form.planProximaSesion,
@@ -75,11 +160,23 @@ function buildPayload(form) {
   }
 }
 
-function SessionSelector({ citas, selectedCitaId, onSelect }) {
+// ============================================================================
+// COMPONENTE: SELECTOR DE SESIONES
+// ============================================================================
+
+interface SessionSelectorProps {
+  citas: Cita[]
+  selectedCitaId: string
+  onSelect: (id: string) => void
+}
+
+function SessionSelector({ citas, selectedCitaId, onSelect }: SessionSelectorProps) {
   return (
     <div className="grid gap-3">
       {citas.map((cita) => {
         const isActive = cita.id === selectedCitaId
+        const tipoLabel = getTipoSesionLabel(cita.tipoSesion)
+        const modalidadLabel = getModalidadLabel(cita.modalidad)
 
         return (
           <button
@@ -96,8 +193,13 @@ function SessionSelector({ citas, selectedCitaId, onSelect }) {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="font-medium">{formatDateTime(cita.fechaInicio)}</p>
-                <p className={['mt-1 text-sm', isActive ? 'text-slate-200' : 'text-slate-500'].join(' ')}>
-                  {cita.tipoSesion} · {cita.modalidad}
+                <p
+                  className={[
+                    'mt-1 text-sm',
+                    isActive ? 'text-slate-200' : 'text-slate-500',
+                  ].join(' ')}
+                >
+                  {tipoLabel} · {modalidadLabel}
                 </p>
               </div>
               <span
@@ -118,8 +220,20 @@ function SessionSelector({ citas, selectedCitaId, onSelect }) {
   )
 }
 
-export default function PacienteNotasTab({ pacienteId }) {
-  const [citas, setCitas] = useState([])
+// ============================================================================
+// COMPONENTE PRINCIPAL
+// ============================================================================
+
+interface PacienteNotasTabProps {
+  pacienteId: string
+}
+
+export default function PacienteNotasTab({ pacienteId }: PacienteNotasTabProps) {
+  // ─────────────────────────────────────────────────────────────────────────
+  // ESTADOS
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const [citas, setCitas] = useState<Cita[]>([])
   const [selectedCitaId, setSelectedCitaId] = useState('')
   const [loadingCitas, setLoadingCitas] = useState(true)
   const [loadingNota, setLoadingNota] = useState(false)
@@ -127,7 +241,11 @@ export default function PacienteNotasTab({ pacienteId }) {
   const [finalizing, setFinalizing] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
-  const [form, setForm] = useState(createEmptyForm())
+  const [form, setForm] = useState<FormState>(createEmptyForm())
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // EFECTOS: Cargar citas del paciente
+  // ─────────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     let ignore = false
@@ -140,19 +258,21 @@ export default function PacienteNotasTab({ pacienteId }) {
         const data = await citasApi.getByPaciente(pacienteId)
         const normalized = Array.isArray(data) ? data : []
         const ordered = normalized.sort(
-          (a, b) => new Date(b?.fechaInicio || 0) - new Date(a?.fechaInicio || 0),
+          (a, b) =>
+            new Date(b?.fechaInicio || 0).getTime() -
+            new Date(a?.fechaInicio || 0).getTime()
         )
 
         if (!ignore) {
           setCitas(ordered)
           setSelectedCitaId((current) => current || ordered[0]?.id || '')
         }
-      } catch (err) {
+      } catch (err: any) {
         if (!ignore) {
           setError(
             err?.response?.data?.message ||
               err?.response?.data?.title ||
-              'No se pudieron cargar las sesiones del paciente.',
+              'No se pudieron cargar las sesiones del paciente.'
           )
         }
       } finally {
@@ -168,6 +288,10 @@ export default function PacienteNotasTab({ pacienteId }) {
       ignore = true
     }
   }, [pacienteId])
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // EFECTOS: Cargar nota de sesión
+  // ─────────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     let ignore = false
@@ -187,7 +311,7 @@ export default function PacienteNotasTab({ pacienteId }) {
         if (!ignore) {
           setForm(mapNoteToForm(data))
         }
-      } catch (err) {
+      } catch (err: any) {
         if (!ignore) {
           const status = err?.response?.status
           if (status === 404) {
@@ -196,7 +320,7 @@ export default function PacienteNotasTab({ pacienteId }) {
             setError(
               err?.response?.data?.message ||
                 err?.response?.data?.title ||
-                'No se pudo cargar la nota de la sesión.',
+                'No se pudo cargar la nota de la sesión.'
             )
           }
         }
@@ -214,12 +338,20 @@ export default function PacienteNotasTab({ pacienteId }) {
     }
   }, [selectedCitaId])
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // COMPUTED
+  // ─────────────────────────────────────────────────────────────────────────
+
   const selectedCita = useMemo(
     () => citas.find((cita) => cita.id === selectedCitaId) || null,
-    [citas, selectedCitaId],
+    [citas, selectedCitaId]
   )
 
-  const handleFieldChange = (field) => (event) => {
+  // ─────────────────────────────────────────────────────────────────────────
+  // HANDLERS
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const handleFieldChange = (field: keyof FormState) => (event: any) => {
     const value =
       event?.target?.type === 'checkbox' ? event.target.checked : event?.target?.value
 
@@ -243,11 +375,11 @@ export default function PacienteNotasTab({ pacienteId }) {
       const saved = await notasApi.guardar(selectedCitaId, buildPayload(form))
       setForm(mapNoteToForm(saved))
       setSuccess('Nota guardada correctamente.')
-    } catch (err) {
+    } catch (err: any) {
       setError(
         err?.response?.data?.message ||
           err?.response?.data?.title ||
-          'No se pudo guardar la nota.',
+          'No se pudo guardar la nota.'
       )
     } finally {
       setSaving(false)
@@ -265,16 +397,20 @@ export default function PacienteNotasTab({ pacienteId }) {
       const result = await notasApi.finalizar(selectedCitaId)
       setForm(mapNoteToForm(result))
       setSuccess('Nota finalizada correctamente.')
-    } catch (err) {
+    } catch (err: any) {
       setError(
         err?.response?.data?.message ||
           err?.response?.data?.title ||
-          'No se pudo finalizar la nota.',
+          'No se pudo finalizar la nota.'
       )
     } finally {
       setFinalizing(false)
     }
   }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // RENDER
+  // ─────────────────────────────────────────────────────────────────────────
 
   if (loadingCitas) {
     return (
@@ -297,6 +433,10 @@ export default function PacienteNotasTab({ pacienteId }) {
 
   return (
     <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+      {/* ═══════════════════════════════════════════════════════════════════════
+          COLUMNA IZQUIERDA: SELECTOR DE SESIONES
+          ═══════════════════════════════════════════════════════════════════════ */}
+
       <Card>
         <CardHeader>
           <CardTitle>Sesiones del paciente</CardTitle>
@@ -311,6 +451,10 @@ export default function PacienteNotasTab({ pacienteId }) {
         </CardContent>
       </Card>
 
+      {/* ═══════════════════════════════════════════════════════════════════════
+          COLUMNA DERECHA: NOTA DE SESIÓN
+          ═══════════════════════════════════════════════════════════════════════ */}
+
       <Card>
         <CardHeader>
           <CardTitle>Nota de sesión</CardTitle>
@@ -320,7 +464,9 @@ export default function PacienteNotasTab({ pacienteId }) {
               : 'Selecciona una sesión.'}
           </CardDescription>
         </CardHeader>
+
         <CardContent className="space-y-5">
+          {/* Mensajes de error/éxito */}
           {(error || success) && (
             <div
               className={[
@@ -345,13 +491,14 @@ export default function PacienteNotasTab({ pacienteId }) {
             <p className="text-sm text-slate-500">Cargando nota...</p>
           ) : (
             <>
+              {/* Evaluaciones rápidas */}
               <div className="grid gap-4 md:grid-cols-2">
                 <Input
                   label="Estado de ánimo (1-10)"
                   type="number"
                   min="1"
                   max="10"
-                  value={form.estadoAnimo}
+                  value={form.estadoAnimo ?? ''}
                   onChange={handleFieldChange('estadoAnimo')}
                 />
                 <Input
@@ -359,11 +506,12 @@ export default function PacienteNotasTab({ pacienteId }) {
                   type="number"
                   min="1"
                   max="10"
-                  value={form.nivelAnsiedad}
+                  value={form.nivelAnsiedad ?? ''}
                   onChange={handleFieldChange('nivelAnsiedad')}
                 />
               </div>
 
+              {/* Resumen de sesión */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-slate-700">
                   Resumen de sesión
@@ -372,11 +520,12 @@ export default function PacienteNotasTab({ pacienteId }) {
                   value={form.resumenSesion}
                   onChange={handleFieldChange('resumenSesion')}
                   rows={5}
-                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500"
+                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
                   placeholder="Describe el contenido principal de la sesión."
                 />
               </div>
 
+              {/* Técnicas usadas */}
               <Input
                 label="Técnicas usadas"
                 hint="Separar por comas. Ej.: reestructuración cognitiva, psicoeducación"
@@ -384,6 +533,7 @@ export default function PacienteNotasTab({ pacienteId }) {
                 onChange={handleFieldChange('tecnicasUsadasText')}
               />
 
+              {/* Avance de objetivos */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-slate-700">
                   Avance de objetivos
@@ -392,11 +542,12 @@ export default function PacienteNotasTab({ pacienteId }) {
                   value={form.avanceObjetivos}
                   onChange={handleFieldChange('avanceObjetivos')}
                   rows={4}
-                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500"
+                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
                   placeholder="Resume avances observados respecto al plan terapéutico."
                 />
               </div>
 
+              {/* Tareas asignadas */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-slate-700">
                   Tareas asignadas
@@ -405,11 +556,12 @@ export default function PacienteNotasTab({ pacienteId }) {
                   value={form.tareasAsignadas}
                   onChange={handleFieldChange('tareasAsignadas')}
                   rows={4}
-                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500"
+                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
                   placeholder="Tareas o compromisos acordados para el paciente."
                 />
               </div>
 
+              {/* Plan para próxima sesión */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-slate-700">
                   Plan para próxima sesión
@@ -418,11 +570,12 @@ export default function PacienteNotasTab({ pacienteId }) {
                   value={form.planProximaSesion}
                   onChange={handleFieldChange('planProximaSesion')}
                   rows={4}
-                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500"
+                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
                   placeholder="Define el enfoque o temas de seguimiento."
                 />
               </div>
 
+              {/* Evaluación de riesgo */}
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <div className="flex items-start gap-3">
                   <input
@@ -451,11 +604,11 @@ export default function PacienteNotasTab({ pacienteId }) {
                       Nivel de riesgo
                     </label>
                     <select
-                      value={form.nivelRiesgo}
+                      value={form.nivelRiesgo || ''}
                       onChange={handleFieldChange('nivelRiesgo')}
-                      className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500"
+                      className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
                     >
-                      {RISK_OPTIONS.map((option) => (
+                      {NIVEL_RIESGO_OPTIONS.map((option) => (
                         <option key={option || 'none'} value={option}>
                           {option || 'Seleccionar nivel'}
                         </option>
@@ -465,6 +618,7 @@ export default function PacienteNotasTab({ pacienteId }) {
                 )}
               </div>
 
+              {/* Botones de acción */}
               <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4">
                 <Button onClick={handleSave} loading={saving}>
                   <Save className="h-4 w-4" />

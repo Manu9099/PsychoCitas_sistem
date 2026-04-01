@@ -6,6 +6,16 @@ export const citasApi = {
     return data
   },
 
+  getByPaciente: async (pacienteId) => {
+    const data = await citasApi.getAll()
+
+    if (!pacienteId) return data
+
+    return (Array.isArray(data) ? data : []).filter(
+      (cita) => cita?.pacienteId === pacienteId,
+    )
+  },
+
   getAgendaHoy: async (psicologoId) => {
     const { data } = await api.get('/api/citas/agenda/hoy', {
       params: psicologoId ? { psicologoId } : {},

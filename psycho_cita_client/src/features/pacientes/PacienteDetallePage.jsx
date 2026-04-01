@@ -1,25 +1,35 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import {
-  ArrowLeft,
-  Mail,
-  Phone,
-  FileText,
-  UserRound,
-  CalendarDays,
-} from 'lucide-react'
+import { ArrowLeft, FileText, FolderOpen, LayoutGrid } from 'lucide-react'
 import PageHeader from '../../components/ui/PageHeader'
 import Button from '../../components/ui/Button'
 import EmptyState from '../../components/ui/EmptyState'
-import StatusBadge from '../../components/ui/StatusBadge'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '../../components/ui/Card'
+import { Card, CardContent } from '../../components/ui/Card'
 import { pacientesApi } from '../../api/pacientesApi'
+import PacienteResumenTab from './components/PacienteResumenTab'
+import PacienteNotasTab from './components/PacienteNotasTab'
+import PacienteDocumentosTab from './components/PacienteDocumentosTab'
+
+const TABS = [
+  {
+    key: 'resumen',
+    label: 'Resumen',
+    icon: LayoutGrid,
+    description: 'Ficha general, historia clínica y métricas de seguimiento.',
+  },
+  {
+    key: 'notas',
+    label: 'Notas',
+    icon: FileText,
+    description: 'Notas clínicas por sesión asociadas a cada cita del paciente.',
+  },
+  {
+    key: 'documentos',
+    label: 'Documentos',
+    icon: FolderOpen,
+    description: 'Consentimientos, fichas y archivos clínicos.',
+  },
+]
 
 function getNombre(data) {
   return (
@@ -42,13 +52,8 @@ function getTelefono(data) {
   return data?.telefono || data?.celular || data?.phoneNumber || 'No registrado'
 }
 
-function getFechaNacimiento(data) {
-  return (
-    data?.fechaNacimiento ||
-    data?.birthDate ||
-    data?.fechaNac ||
-    'No registrada'
-  )
+function getBadgeLabel(paciente) {
+  return paciente?.activo ? 'Activo' : 'Inactivo'
 }
 
 export default function PacienteDetallePage() {
@@ -58,113 +63,86 @@ export default function PacienteDetallePage() {
   const [paciente, setPaciente] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [activeTab, setActiveTab] = useState('resumen')
 
   useEffect(() => {
+    let ignore = false
+
     const loadPaciente = async () => {
       setLoading(true)
       setError('')
 
       try {
         const data = await pacientesApi.getById(id)
-        setPaciente(data)
+        if (!ignore) {
+          setPaciente(data)
+        }
       } catch (err) {
-        setPaciente(null)
-        setError(
-          err?.response?.data?.message ||
-            err?.response?.data?.title ||
-            'No se pudo cargar el paciente'
-        )
+        if (!ignore) {
+          setPaciente(null)
+          setError(
+            err?.response?.data?.message ||
+              err?.response?.data?.title ||
+              'No se pudo cargar el paciente.',
+          )
+        }
       } finally {
-        setLoading(false)
+        if (!ignore) {
+          setLoading(false)
+        }
       }
     }
 
     loadPaciente()
+
+    return () => {
+      ignore = true
+    }
   }, [id])
+
+  const title = useMemo(() => getNombre(paciente), [paciente])
+  const documento = useMemo(() => getDocumento(paciente), [paciente])
+  const email = useMemo(() => getEmail(paciente), [paciente])
+  const telefono = useMemo(() => getTelefono(paciente), [paciente])
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <PageHeader
-          eyebrow="PsychoCitas"
-          title="Detalle de paciente"
-          description="Cargando información..."
-          actions={
-            <Button variant="secondary" onClick={() => navigate('/app/pacientes')}>
-              <ArrowLeft className="h-4 w-4" />
-              Volver
-            </Button>
-          }
-        />
-
-        <Card>
-          <CardContent>
-            <p className="text-sm text-slate-500">Cargando paciente...</p>
-          </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardContent>
+          <p className="text-sm text-slate-500">Cargando paciente...</p>
+        </CardContent>
+      </Card>
     )
   }
 
   if (error) {
     return (
-      <div className="space-y-6">
-        <PageHeader
-          eyebrow="PsychoCitas"
-          title="Detalle de paciente"
-          description="No se pudo cargar la información."
-          actions={
-            <Button variant="secondary" onClick={() => navigate('/app/pacientes')}>
-              <ArrowLeft className="h-4 w-4" />
-              Volver
-            </Button>
-          }
-        />
-
-        <Card>
-          <CardContent>
-            <p className="text-sm text-rose-600">{error}</p>
-          </CardContent>
-        </Card>
-      </div>
+      <EmptyState
+        title="No se pudo cargar el paciente"
+        description={error}
+        actionLabel="Volver a pacientes"
+        onAction={() => navigate('/app/pacientes')}
+      />
     )
   }
 
   if (!paciente) {
     return (
-      <div className="space-y-6">
-        <PageHeader
-          eyebrow="PsychoCitas"
-          title="Detalle de paciente"
-          description="No hay información disponible."
-          actions={
-            <Button variant="secondary" onClick={() => navigate('/app/pacientes')}>
-              <ArrowLeft className="h-4 w-4" />
-              Volver
-            </Button>
-          }
-        />
-
-        <EmptyState
-          title="Paciente no encontrado"
-          description="No se encontró información para este paciente."
-        />
-      </div>
+      <EmptyState
+        title="Paciente no encontrado"
+        description="No se encontró información para este registro."
+        actionLabel="Volver a pacientes"
+        onAction={() => navigate('/app/pacientes')}
+      />
     )
   }
-
-  const nombre = getNombre(paciente)
-  const documento = getDocumento(paciente)
-  const email = getEmail(paciente)
-  const telefono = getTelefono(paciente)
-  const fechaNacimiento = getFechaNacimiento(paciente)
 
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="PsychoCitas"
-        title={nombre}
-        description="Ficha principal del paciente."
+        eyebrow="Expediente clínico"
+        title={title}
+        description="Centraliza la revisión general, notas por sesión y documentos del paciente desde una sola vista."
         actions={
           <Button variant="secondary" onClick={() => navigate('/app/pacientes')}>
             <ArrowLeft className="h-4 w-4" />
@@ -173,85 +151,82 @@ export default function PacienteDetallePage() {
         }
       />
 
-      <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <CardTitle>Información general</CardTitle>
-                <CardDescription>
-                  Datos principales del paciente
-                </CardDescription>
-              </div>
-
-              <StatusBadge status="activo">Activo</StatusBadge>
+      <Card>
+        <CardContent className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div>
+              <p className="text-sm text-slate-500">Documento</p>
+              <p className="mt-1 font-medium text-slate-900">{documento}</p>
             </div>
-          </CardHeader>
-
-          <CardContent className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <div className="mb-2 flex items-center gap-2 text-slate-500">
-                <UserRound className="h-4 w-4" />
-                <span className="text-sm">Nombre</span>
-              </div>
-              <p className="font-medium text-slate-900">{nombre}</p>
+            <div>
+              <p className="text-sm text-slate-500">Correo</p>
+              <p className="mt-1 font-medium text-slate-900">{email}</p>
             </div>
-
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <div className="mb-2 flex items-center gap-2 text-slate-500">
-                <FileText className="h-4 w-4" />
-                <span className="text-sm">Documento</span>
-              </div>
-              <p className="font-medium text-slate-900">{documento}</p>
+            <div>
+              <p className="text-sm text-slate-500">Teléfono</p>
+              <p className="mt-1 font-medium text-slate-900">{telefono}</p>
             </div>
-
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <div className="mb-2 flex items-center gap-2 text-slate-500">
-                <Mail className="h-4 w-4" />
-                <span className="text-sm">Correo</span>
-              </div>
-              <p className="font-medium text-slate-900">{email}</p>
+            <div>
+              <p className="text-sm text-slate-500">Estado</p>
+              <p className="mt-1">
+                <span className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700">
+                  {getBadgeLabel(paciente)}
+                </span>
+              </p>
             </div>
+          </div>
+        </CardContent>
+      </Card>
 
-            <div className="rounded-2xl bg-slate-50 p-4">
-              <div className="mb-2 flex items-center gap-2 text-slate-500">
-                <Phone className="h-4 w-4" />
-                <span className="text-sm">Teléfono</span>
-              </div>
-              <p className="font-medium text-slate-900">{telefono}</p>
-            </div>
+      <div className="rounded-3xl border border-slate-200 bg-white p-2 shadow-sm">
+        <div className="grid gap-2 md:grid-cols-3">
+          {TABS.map((tab) => {
+            const Icon = tab.icon
+            const isActive = activeTab === tab.key
 
-            <div className="rounded-2xl bg-slate-50 p-4 md:col-span-2">
-              <div className="mb-2 flex items-center gap-2 text-slate-500">
-                <CalendarDays className="h-4 w-4" />
-                <span className="text-sm">Fecha de nacimiento</span>
-              </div>
-              <p className="font-medium text-slate-900">{fechaNacimiento}</p>
-            </div>
-          </CardContent>
-        </Card>
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setActiveTab(tab.key)}
+                className={[
+                  'rounded-2xl px-4 py-4 text-left transition',
+                  isActive
+                    ? 'bg-slate-900 text-white'
+                    : 'bg-white text-slate-700 hover:bg-slate-50',
+                ].join(' ')}
+              >
+                <div className="flex items-start gap-3">
+                  <div
+                    className={[
+                      'mt-0.5 flex h-10 w-10 items-center justify-center rounded-2xl',
+                      isActive ? 'bg-white/10' : 'bg-slate-100',
+                    ].join(' ')}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Resumen</CardTitle>
-            <CardDescription>
-              Bloque listo para ampliar con historial, citas o notas.
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent className="space-y-3">
-            <div className="rounded-2xl border border-slate-200 p-4">
-              <p className="text-sm text-slate-500">ID</p>
-              <p className="mt-1 font-medium text-slate-900">{id}</p>
-            </div>
-
-            <div className="rounded-2xl border border-slate-200 p-4">
-              <p className="text-sm text-slate-500">Estado de ficha</p>
-              <p className="mt-1 font-medium text-slate-900">Disponible</p>
-            </div>
-          </CardContent>
-        </Card>
+                  <div>
+                    <p className="font-medium">{tab.label}</p>
+                    <p
+                      className={[
+                        'mt-1 text-sm leading-6',
+                        isActive ? 'text-slate-200' : 'text-slate-500',
+                      ].join(' ')}
+                    >
+                      {tab.description}
+                    </p>
+                  </div>
+                </div>
+              </button>
+            )
+          })}
+        </div>
       </div>
+
+      {activeTab === 'resumen' && <PacienteResumenTab paciente={paciente} />}
+      {activeTab === 'notas' && <PacienteNotasTab pacienteId={id} />}
+      {activeTab === 'documentos' && <PacienteDocumentosTab pacienteId={id} />}
     </div>
   )
 }

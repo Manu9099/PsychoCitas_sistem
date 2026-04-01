@@ -1,4 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom'
+
 import LoginPage from '../features/auth/LoginPage'
 import DashboardPage from '../features/dashboard/DashboardPage'
 import AgendaPage from '../features/agenda/AgendaPage'
@@ -8,6 +9,7 @@ import CheckoutResultPage from '../features/public/CheckoutResultPage'
 import PacientesPage from '../features/pacientes/PacientesPage'
 import PacienteDetallePage from '../features/pacientes/PacienteDetallePage'
 import PagoPage from '../features/pagos/PagoPage'
+import NotificacionesPage from '../features/notificaciones/NotificacionesPage'
 import { AppShell } from '../components/layout/AppShell'
 import { AuthGuard } from '../hooks/useAuthGuard'
 
@@ -29,6 +31,7 @@ export const router = createBrowserRouter([
       { path: 'pacientes', element: <PacientesPage /> },
       { path: 'pacientes/:id', element: <PacienteDetallePage /> },
       { path: 'pagos', element: <PagoPage /> },
+      { path: 'notificaciones', element: <NotificacionesPage /> },
     ],
   },
 ])

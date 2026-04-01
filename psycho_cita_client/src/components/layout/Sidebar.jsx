@@ -4,6 +4,7 @@ import {
   CalendarDays,
   Users,
   CreditCard,
+  Bell,
   LogOut,
   HeartHandshake,
   X,
@@ -32,7 +33,15 @@ const navItems = [
     label: 'Pagos',
     icon: CreditCard,
   },
+  {
+    to: '/app/notificaciones',
+    label: 'Notificaciones',
+    icon: Bell,
+  },
 ]
+
+
+
 
 function getNavClass(isActive) {
   return [
@@ -90,7 +99,15 @@ export default function Sidebar({ mobileOpen = false, onClose = () => {} }) {
             <X className="h-5 w-5" />
           </button>
         </div>
-
+   <aside
+        className={[
+          'fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-slate-200 bg-white transition-transform duration-200',
+          mobileOpen ? 'translate-x-0' : '-translate-x-full',
+          'lg:static lg:z-auto lg:w-65 lg:translate-x-0',
+        ].join(' ')}
+      >
+        {/* deja abajo el resto de tu componente igual */}
+      </aside>
         <div className="flex-1 p-4">
           <p className="px-3 pb-2 text-xs font-medium uppercase tracking-wide text-slate-400">
             Navegación

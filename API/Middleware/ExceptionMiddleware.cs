@@ -1,89 +1,97 @@
-using FluentValidation;
-using Microsoft.AspNetCore.Http;
-using PsychoCitas.API.Common;
-using PsychoCitas.Domain.Exceptions;
 using System.Net;
 using System.Text.Json;
+using FluentValidation;
+using PsychoCitas.Domain.Exceptions;
 
 namespace PsychoCitas.API.Middleware;
 
-public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger)
+public class ExceptionMiddleware
 {
+    private readonly RequestDelegate _next;
+    private readonly ILogger<ExceptionMiddleware> _logger;
+
+    public ExceptionMiddleware(
+        RequestDelegate next,
+        ILogger<ExceptionMiddleware> logger)
+    {
+        _next = next;
+        _logger = logger;
+    }
+
     public async Task InvokeAsync(HttpContext context)
     {
         try
         {
-            await next(context);
+            await _next(context);
+        }
+        catch (ValidationException ex)
+        {
+            _logger.LogWarning(ex, "Validation error");
+
+            context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+            context.Response.ContentType = "application/json";
+
+            var response = new
+            {
+                title = "Validation Error",
+                message = "Uno o más campos no son válidos.",
+                status = 400,
+                errors = ex.Errors.Select(e => new
+                {
+                    field = e.PropertyName,
+                    error = e.ErrorMessage
+                })
+            };
+
+            await context.Response.WriteAsync(JsonSerializer.Serialize(response));
+        }
+        catch (NotFoundException ex)
+        {
+            _logger.LogWarning(ex, "Resource not found");
+
+            context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+            context.Response.ContentType = "application/json";
+
+            var response = new
+            {
+                title = "Not Found",
+                message = ex.Message,
+                status = 404
+            };
+
+            await context.Response.WriteAsync(JsonSerializer.Serialize(response));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "Unauthorized");
+
+            context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+            context.Response.ContentType = "application/json";
+
+            var response = new
+            {
+                title = "Unauthorized",
+                message = ex.Message,
+                status = 401
+            };
+
+            await context.Response.WriteAsync(JsonSerializer.Serialize(response));
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Unhandled exception");
+            _logger.LogError(ex, "Unhandled exception");
 
-            var response = MapException(ex, context);
+            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             context.Response.ContentType = "application/json";
-            context.Response.StatusCode = response.Status;
 
-            var json = JsonSerializer.Serialize(response);
-            await context.Response.WriteAsync(json);
+            var response = new
+            {
+                title = "Internal Server Error",
+                message = "Ocurrió un error inesperado.",
+                status = 500
+            };
+
+            await context.Response.WriteAsync(JsonSerializer.Serialize(response));
         }
-    }
-
-    private static ApiErrorResponse MapException(Exception ex, HttpContext context)
-    {
-        var traceId = context.TraceIdentifier;
-
-        return ex switch
-        {
-            ValidationException ve => new ApiErrorResponse
-            {
-                Title = "Validation error",
-                Status = StatusCodes.Status400BadRequest,
-                Detail = "One or more validation errors occurred.",
-                Errors = ve.Errors
-                    .GroupBy(e => e.PropertyName)
-                    .ToDictionary(g => g.Key, g => g.Select(x => x.ErrorMessage).ToArray()),
-                TraceId = traceId
-            },
-
-            NotFoundException nfe => new ApiErrorResponse
-            {
-                Title = "Resource not found",
-                Status = StatusCodes.Status404NotFound,
-                Detail = nfe.Message,
-                TraceId = traceId
-            },
-
-            ConflictoAgendaException cae => new ApiErrorResponse
-            {
-                Title = "Schedule conflict",
-                Status = StatusCodes.Status409Conflict,
-                Detail = cae.Message,
-                TraceId = traceId
-            },
-
-            DomainException de => new ApiErrorResponse
-            {
-                Title = "Domain error",
-                Status = StatusCodes.Status400BadRequest,
-                Detail = de.Message,
-                TraceId = traceId
-            },
-
-            UnauthorizedAccessException => new ApiErrorResponse
-            {
-                Title = "Unauthorized",
-                Status = StatusCodes.Status401Unauthorized,
-                Detail = "You are not authorized to perform this action.",
-                TraceId = traceId
-            },
-
-            _ => new ApiErrorResponse
-            {
-                Title = "Internal server error",
-                Status = StatusCodes.Status500InternalServerError,
-                Detail = "An unexpected error occurred.",
-                TraceId = traceId
-            }
-        };
     }
 }

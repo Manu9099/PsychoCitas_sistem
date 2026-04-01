@@ -157,7 +157,6 @@ builder.Services.AddHealthChecks() .AddNpgSql(builder.Configuration.GetConnectio
 var app = builder.Build();
 
 await app.SeedAdminAsync();
-
 app.UseSwagger();
 app.UseSwaggerUI();
 app.MapHealthChecks("/health");
